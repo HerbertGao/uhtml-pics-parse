@@ -55,6 +55,7 @@ impl UHTMLImageExtractor {
         uhtml_path: &Path,
         output_dir: Option<&PathBuf>,
         output_all: bool,
+        min_size: Option<(u32, u32)>,
     ) -> Result<ExtractionResult> {
         if !uhtml_path.exists() {
             return Err(ExtractionError::PathError(format!("文件不存在: {}", uhtml_path.display())).into());
@@ -82,7 +83,7 @@ impl UHTMLImageExtractor {
             .with_context(|| format!("读取文件失败: {}", uhtml_path.display()))?;
 
         // 提取图片
-        let images = self.extract_images(&data, output_all)?;
+        let images = self.extract_images(&data, output_all, min_size)?;
 
         // 保存图片
         let mut saved_count = 0;
@@ -114,6 +115,7 @@ impl UHTMLImageExtractor {
         directory: &Path,
         recursive: bool,
         output_all: bool,
+        min_size: Option<(u32, u32)>,
     ) -> Result<Vec<ExtractionResult>> {
         if !directory.exists() || !directory.is_dir() {
             return Err(ExtractionError::PathError(format!("目录不存在或不是有效目录: {}", directory.display())).into());
@@ -156,7 +158,7 @@ impl UHTMLImageExtractor {
         for uhtml_file in uhtml_files {
             println!("\n处理文件: {}", uhtml_file.display());
             
-            match self.extract_images_from_file(&uhtml_file, None, output_all) {
+            match self.extract_images_from_file(&uhtml_file, None, output_all, min_size) {
                 Ok(result) => {
                     println!("✓ 完成: 提取了 {} 张图片", result.saved_images);
                     results.push(result);
@@ -179,7 +181,7 @@ impl UHTMLImageExtractor {
     }
 
     /// 从UHTML数据中提取所有图片
-    fn extract_images(&self, data: &[u8], output_all: bool) -> Result<Vec<ImageInfo>> {
+    fn extract_images(&self, data: &[u8], output_all: bool, min_size: Option<(u32, u32)>) -> Result<Vec<ImageInfo>> {
         let mut images = Vec::new();
 
         // 图片格式签名和结束标记
@@ -212,9 +214,10 @@ impl UHTMLImageExtractor {
                     // 获取图片尺寸
                     let (width, height) = self.get_image_dimensions(&image_data)?;
                     
-                    // 如果不是输出全部，过滤小于20x20的图片
-                    if !output_all && (width < 20 || height < 20) {
-                        println!("跳过小图片: {}x{} 像素", width, height);
+                    // 如果不是输出全部，过滤小于指定尺寸的图片
+                    let (min_width, min_height) = min_size.unwrap_or((100, 100));
+                    if !output_all && (width < min_width || height < min_height) {
+                        println!("跳过小图片: {}x{} 像素 (最小尺寸: {}x{})", width, height, min_width, min_height);
                         continue;
                     }
                     

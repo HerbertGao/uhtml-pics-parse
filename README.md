@@ -7,7 +7,7 @@
 - 🖼️ **图片提取**：从UHTML文件中提取JPEG、PNG、GIF等格式的图片
 - 📁 **批量处理**：支持单个文件或整个目录的批量处理
 - 🔍 **递归搜索**：可递归搜索子目录中的UHTML文件
-- 🎯 **智能过滤**：自动过滤小于20x20像素的小图片（可关闭）
+- 🎯 **智能过滤**：自动过滤小于100x100像素的小图片（可自定义）
 - 🔄 **自动更新**：内置版本检查和自动更新功能
 - 🖥️ **多平台支持**：支持Windows、macOS、Linux（x86_64和ARM64）
 
@@ -44,6 +44,9 @@ uhtml-pics-parse extract example.uhtml --output ./output
 
 # 提取所有图片（包括小图片）
 uhtml-pics-parse extract example.uhtml --all
+
+# 自定义最小图片尺寸
+uhtml-pics-parse extract example.uhtml --min-size 200x150
 
 # 详细输出
 uhtml-pics-parse extract /path/to/directory --verbose
@@ -82,6 +85,7 @@ uhtml-pics-parse --version
 | `--recursive` | `-r` | 递归搜索子目录 |
 | `--verbose` | `-v` | 详细输出模式 |
 | `--all` | `-a` | 提取所有图片（不过滤小图片） |
+| `--min-size <SIZE>` | | 最小图片尺寸 (格式: 宽x高，例如: 200x150) |
 
 ### Update 命令
 
@@ -134,6 +138,11 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 欢迎提交 Issue 和 Pull Request！
 
 ## 更新日志
+
+### v1.0.3
+- 调整默认过滤尺寸为 100x100 像素
+- 新增自定义最小图片尺寸功能
+- 改进错误处理和用户提示
 
 ### v1.0.0
 - 初始版本发布
