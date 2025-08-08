@@ -1,6 +1,6 @@
 [package]
 name = "uhtml-pics-parse"
-version = "1.0.2"
+version = "1.0.3"
 edition = "2021"
 description = "UHTML图片批量提取工具 (Rust版本)"
 authors = ["Claude"]
