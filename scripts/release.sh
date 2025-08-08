@@ -31,6 +31,13 @@ if [[ ! $NEW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
+# 检查版本号是否与当前版本相同
+if [[ "$NEW_VERSION" == "$CURRENT_VERSION" ]]; then
+    echo -e "${RED}❌ 新版本号不能与当前版本相同${NC}"
+    echo -e "${YELLOW}当前版本: $CURRENT_VERSION${NC}"
+    exit 1
+fi
+
 # 更新 Cargo.toml 中的版本号
 echo -e "${BLUE}📝 更新 Cargo.toml 版本号...${NC}"
 sed -i.bak "s/^version = \".*\"/version = \"$NEW_VERSION\"/" Cargo.toml
