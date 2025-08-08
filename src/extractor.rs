@@ -14,15 +14,20 @@ pub enum ExtractionError {
     Base64Encode(#[from] base64::DecodeError),
     #[error("路径错误: {0}")]
     PathError(String),
+    #[error("图片解析失败")]
+    ImageParse(String),
 }
 
 #[derive(Debug)]
 pub struct ImageInfo {
+    #[allow(dead_code)]
     pub index: usize,
     pub image_type: String,
     pub size: usize,
     pub data: Vec<u8>,
+    #[allow(dead_code)]
     pub position: usize,
+    #[allow(dead_code)]
     pub end_position: usize,
     pub width: u32,
     pub height: u32,
@@ -52,7 +57,7 @@ impl UHTMLImageExtractor {
         output_all: bool,
     ) -> Result<ExtractionResult> {
         if !uhtml_path.exists() {
-            anyhow::bail!("文件不存在: {}", uhtml_path.display());
+            return Err(ExtractionError::PathError(format!("文件不存在: {}", uhtml_path.display())).into());
         }
 
         // 确定输出目录
@@ -111,7 +116,7 @@ impl UHTMLImageExtractor {
         output_all: bool,
     ) -> Result<Vec<ExtractionResult>> {
         if !directory.exists() || !directory.is_dir() {
-            anyhow::bail!("目录不存在或不是有效目录: {}", directory.display());
+            return Err(ExtractionError::PathError(format!("目录不存在或不是有效目录: {}", directory.display())).into());
         }
 
         // 查找所有UHTML文件
@@ -261,7 +266,7 @@ impl UHTMLImageExtractor {
         if end_pos > start_pos && end_pos <= data.len() {
             Ok(data[start_pos..end_pos].to_vec())
         } else {
-            anyhow::bail!("无效的图片数据范围");
+            Err(ExtractionError::ImageParse("无效的图片数据范围".to_string()).into())
         }
     }
 
