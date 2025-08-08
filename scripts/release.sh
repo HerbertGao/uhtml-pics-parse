@@ -55,7 +55,7 @@ git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
 
 # 推送更改和标签
 echo -e "${BLUE}🚀 推送更改和标签...${NC}"
-git push origin main
+git push origin master
 git push origin "v$NEW_VERSION"
 
 echo -e "${GREEN}✅ 发布完成！${NC}"
