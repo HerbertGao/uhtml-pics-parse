@@ -1,75 +1,75 @@
-use clap::{Arg, Command};
+use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 mod extractor;
+mod updater;
+
 use extractor::UHTMLImageExtractor;
+use updater::Updater;
 
-fn main() {
-    let matches = Command::new("uhtml-pics-parse")
-        .version("0.1.0")
-        .author("Claude")
-        .about("UHTML图片批量提取工具 (Rust版本)")
-        .arg(
-            Arg::new("path")
-                .help("UHTML文件路径或包含UHTML文件的目录路径")
-                .required(true)
-                .index(1),
-        )
-        .arg(
-            Arg::new("output")
-                .short('o')
-                .long("output")
-                .value_name("OUTPUT")
-                .help("输出目录（可选，默认使用与文件同名的目录）"),
-        )
-        .arg(
-            Arg::new("recursive")
-                .short('r')
-                .long("recursive")
-                .action(clap::ArgAction::SetTrue)
-                .help("递归搜索子目录中的UHTML文件"),
-        )
-        .arg(
-            Arg::new("verbose")
-                .short('v')
-                .long("verbose")
-                .action(clap::ArgAction::SetTrue)
-                .help("详细输出"),
-        )
-        .arg(
-            Arg::new("all")
-                .short('a')
-                .long("all")
-                .action(clap::ArgAction::SetTrue)
-                .help("输出全部图片（默认过滤小于20x20像素的图片）"),
-        )
-        .get_matches();
+#[derive(Parser)]
+#[command(name = "uhtml-pics-parse")]
+#[command(about = "UHTML图片批量提取工具 (Rust版本)")]
+#[command(version)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
 
-    let path = PathBuf::from(matches.get_one::<String>("path").unwrap());
-    let output = matches.get_one::<String>("output").map(PathBuf::from);
-    let recursive = matches.get_flag("recursive");
-    let verbose = matches.get_flag("verbose");
-    let output_all = matches.get_flag("all");
+#[derive(Subcommand)]
+enum Commands {
+    /// 提取UHTML文件中的图片
+    Extract {
+        /// UHTML文件路径或包含UHTML文件的目录路径
+        path: PathBuf,
+        
+        /// 输出目录（可选，默认使用与文件同名的目录）
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+        
+        /// 递归搜索子目录中的UHTML文件
+        #[arg(short, long)]
+        recursive: bool,
+        
+        /// 详细输出
+        #[arg(short, long)]
+        verbose: bool,
+        
+        /// 输出全部图片（默认过滤小于20x20像素的图片）
+        #[arg(short, long)]
+        all: bool,
+    },
+    
+    /// 检查并更新到最新版本
+    Update,
+}
 
-    let extractor = UHTMLImageExtractor::new();
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let cli = Cli::parse();
 
-    match run_extraction(extractor, path, output, recursive, verbose, output_all) {
-        Ok(_) => {}
-        Err(e) => {
-            eprintln!("执行失败: {}", e);
-            std::process::exit(1);
+    match &cli.command {
+        Commands::Extract { path, output, recursive, verbose, all } => {
+            run_extraction(path, output.as_ref(), *recursive, *verbose, *all)?;
+        }
+        Commands::Update => {
+            let updater = Updater::new()?;
+            updater.update().await?;
         }
     }
+
+    Ok(())
 }
 
 fn run_extraction(
-    extractor: UHTMLImageExtractor,
-    path: PathBuf,
-    output: Option<PathBuf>,
+    path: &PathBuf,
+    output: Option<&PathBuf>,
     recursive: bool,
     verbose: bool,
     output_all: bool,
 ) -> anyhow::Result<()> {
+    let extractor = UHTMLImageExtractor::new();
+
     if path.is_file() {
         // 处理单个文件
         if !path.extension().map_or(false, |ext| ext == "uhtml") {
@@ -77,7 +77,7 @@ fn run_extraction(
         }
 
         println!("提取单个文件: {}", path.display());
-        let result = extractor.extract_images_from_file(&path, output.as_ref(), output_all)?;
+        let result = extractor.extract_images_from_file(path, output, output_all)?;
 
         println!("\n=== 提取完成 ===");
         println!("源文件: {}", result.source_file.display());
@@ -90,7 +90,7 @@ fn run_extraction(
         println!("批量提取目录: {}", path.display());
         println!("递归搜索: {}", if recursive { "是" } else { "否" });
 
-        let results = extractor.extract_images_from_directory(&path, recursive, output_all)?;
+        let results = extractor.extract_images_from_directory(path, recursive, output_all)?;
 
         // 统计结果
         let total_files = results.len();
