@@ -1,32 +1,27 @@
 # UHTML图片批量提取工具 (Rust版本)
 
-这是一个使用Rust编写的高性能UHTML图片提取工具，专门用于从UC浏览器7.9的uhtml文件中批量提取所有图片。
+一个高效的UHTML文件图片提取工具，支持批量处理和自动更新。
 
 ## 功能特性
 
-- 🚀 **高性能**: 使用Rust编写，提供极佳的性能和内存安全
-- 🖼️ **多格式支持**: 支持JPEG、PNG、GIF等常见图片格式
-- 📁 **批量处理**: 支持单文件和目录批量处理
-- 🔄 **递归搜索**: 可选择递归搜索子目录中的UHTML文件
-- 📊 **详细统计**: 提供详细的提取进度和统计信息
-- 🎯 **智能命名**: 图片按 `image_000.jpg` 格式自动命名
-- 📂 **自动目录**: 自动创建与UHTML文件同名的目录存放图片
-- 🔍 **尺寸过滤**: 默认过滤小于20x20像素的小图片，可选输出全部
-- 📏 **尺寸显示**: 显示每张图片的宽高和文件大小
+- 🖼️ **图片提取**：从UHTML文件中提取JPEG、PNG、GIF等格式的图片
+- 📁 **批量处理**：支持单个文件或整个目录的批量处理
+- 🔍 **递归搜索**：可递归搜索子目录中的UHTML文件
+- 🎯 **智能过滤**：自动过滤小于20x20像素的小图片（可关闭）
+- 🔄 **自动更新**：内置版本检查和自动更新功能
+- 🖥️ **多平台支持**：支持Windows、macOS、Linux（x86_64和ARM64）
 
 ## 安装
 
-确保您的系统已安装Rust编译环境：
+### 从GitHub Releases下载
+
+访问 [GitHub Releases](https://github.com/HerbertGao/uhtml-pics-parse/releases) 页面，下载适合您平台的预编译版本。
+
+### 从源码编译
 
 ```bash
-# 安装Rust (如果还未安装)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# 克隆项目
-git clone <repository-url>
+git clone https://github.com/HerbertGao/uhtml-pics-parse.git
 cd uhtml-pics-parse
-
-# 编译项目
 cargo build --release
 ```
 
@@ -35,124 +30,78 @@ cargo build --release
 ### 基本用法
 
 ```bash
-# 编译并运行
-cargo run --release -- <路径> [选项]
+# 提取单个UHTML文件中的图片
+uhtml-pics-parse extract example.uhtml
 
-# 或使用编译后的二进制文件
-./target/release/uhtml-pics-parse <路径> [选项]
+# 提取目录中所有UHTML文件的图片
+uhtml-pics-parse extract /path/to/uhtml/files
+
+# 递归搜索子目录
+uhtml-pics-parse extract /path/to/directory --recursive
+
+# 指定输出目录
+uhtml-pics-parse extract example.uhtml --output ./output
+
+# 提取所有图片（包括小图片）
+uhtml-pics-parse extract example.uhtml --all
+
+# 详细输出
+uhtml-pics-parse extract /path/to/directory --verbose
 ```
 
-### 命令行选项
-
-```text
-USAGE:
-    uhtml-pics-parse [OPTIONS] <PATH>
-
-ARGS:
-    <PATH>    UHTML文件路径或包含UHTML文件的目录路径
-
-OPTIONS:
-    -h, --help                 显示帮助信息
-    -o, --output <OUTPUT>      输出目录（可选，默认使用与文件同名的目录）
-    -r, --recursive            递归搜索子目录中的UHTML文件
-    -v, --verbose              详细输出
-    -a, --all                  输出全部图片（默认过滤小于20x20像素的图片）
-    -V, --version              显示版本信息
-```
-
-### 使用示例
-
-#### 1. 提取单个UHTML文件中的图片
+### 更新程序
 
 ```bash
-cargo run --release -- test.uhtml
+# 检查并更新到最新版本
+uhtml-pics-parse update
 ```
 
-输出结果：
-
-```text
-提取单个文件: test.uhtml
-跳过小图片: 16x16 像素
-保存图片: test/image_000.jpg (469x351, 41971 bytes)
-保存图片: test/image_001.jpg (469x319, 40635 bytes)
-保存图片: test/image_002.jpg (469x351, 50665 bytes)
-...
-
-=== 提取完成 ===
-源文件: test.uhtml
-输出目录: test
-找到图片: 7 张
-成功保存: 7 张
-```
-
-#### 2. 批量处理目录中的所有UHTML文件
+### 获取帮助
 
 ```bash
-cargo run --release -- /path/to/uhtml/files/ -v
+# 查看所有命令
+uhtml-pics-parse --help
+
+# 查看提取命令的帮助
+uhtml-pics-parse extract --help
+
+# 查看更新命令的帮助
+uhtml-pics-parse update --help
+
+# 查看版本信息
+uhtml-pics-parse --version
 ```
 
-#### 3. 递归搜索子目录
+## 命令行选项
 
-```bash
-cargo run --release -- /path/to/uhtml/files/ -r -v
-```
+### Extract 命令
 
-#### 4. 输出全部图片（包括小图片）
+| 选项 | 短选项 | 说明 |
+|------|--------|------|
+| `--output <OUTPUT>` | `-o` | 指定输出目录（可选） |
+| `--recursive` | `-r` | 递归搜索子目录 |
+| `--verbose` | `-v` | 详细输出模式 |
+| `--all` | `-a` | 提取所有图片（不过滤小图片） |
 
-```bash
-cargo run --release -- test.uhtml -a -v
-```
+### Update 命令
 
-#### 5. 指定自定义输出目录
+无额外选项，执行后会自动检查更新并提示用户确认。
 
-```bash
-cargo run --release -- test.uhtml -o /custom/output/path
-```
+## 输出说明
 
-## 项目结构
+程序会在指定目录下创建与UHTML文件同名的文件夹，并将提取的图片保存为：
 
-```text
-uhtml-pics-parse/
-├── Cargo.toml          # 项目配置和依赖
-├── README.md          # 项目说明文档
-└── src/
-    ├── main.rs        # 主程序入口和命令行处理
-    └── extractor.rs   # 核心图片提取逻辑
-```
+- `image_001.jpg` - JPEG格式图片
+- `image_002.png` - PNG格式图片
+- `image_003.gif` - GIF格式图片
 
-## 技术实现
+## 支持的图片格式
 
-### 核心算法
-
-1. **二进制扫描**: 通过查找图片文件头签名定位图片数据
-   - JPEG: `FF D8 FF`
-   - PNG: `89 50 4E 47 0D 0A 1A 0A`
-   - GIF: `GIF87a` 或 `GIF89a`
-
-2. **边界检测**: 通过文件尾标记或下一个图片位置确定图片数据边界
-
-3. **数据验证**: 最小尺寸验证确保提取的数据是有效图片
-
-### 依赖库
-
-- `clap`: 命令行参数解析
-- `walkdir`: 目录遍历和递归搜索
-- `anyhow`: 错误处理
-- `thiserror`: 自定义错误类型
-- `base64`: Base64编码处理
-
-## 性能特性
-
-- **零拷贝**: 使用引用和切片避免不必要的内存复制
-- **内存安全**: Rust的所有权系统确保内存安全
-- **并发友好**: 设计支持未来的并发处理扩展
-- **错误处理**: 完善的错误处理和恢复机制
-
-## 兼容性
-
-- 支持所有主流操作系统 (Windows, macOS, Linux)
-- 兼容UC浏览器7.9版本的UHTML文件格式
-- 支持各种图片格式的混合文件
+- JPEG (.jpg, .jpeg)
+- PNG (.png)
+- GIF (.gif)
+- WebP (.webp)
+- BMP (.bmp)
 
 ## 开发
 
@@ -167,18 +116,27 @@ cargo build --release
 
 # 运行测试
 cargo test
-
-# 格式化代码
-cargo fmt
-
-# 代码检查
-cargo clippy
 ```
 
-### 贡献
+### 发布新版本
 
-欢迎提交Issue和Pull Request来改进这个项目！
+```bash
+# 使用发布脚本
+./scripts/release.sh
+```
 
 ## 许可证
 
-本项目采用MIT许可证。详见LICENSE文件。
+MIT License - 详见 [LICENSE](LICENSE) 文件
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 更新日志
+
+### v1.0.0
+- 初始版本发布
+- 支持UHTML文件图片提取
+- 添加批量处理和递归搜索
+- 内置自动更新功能
