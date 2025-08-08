@@ -216,7 +216,7 @@ impl UHTMLImageExtractor {
                     
                     // 如果不是输出全部，过滤小于指定尺寸的图片
                     let (min_width, min_height) = min_size.unwrap_or((100, 100));
-                    if !output_all && (width < min_width || height < min_height) {
+                    if !output_all && width < min_width && height < min_height {
                         println!("跳过小图片: {}x{} 像素 (最小尺寸: {}x{})", width, height, min_width, min_height);
                         continue;
                     }
